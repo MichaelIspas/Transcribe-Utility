@@ -1,20 +1,26 @@
 # Michael Ispas
 # Transcribe Utility
-# Resources:
-# Whisper Docs - https://github.com/openai/whisper
-# Whisper Fork - https://github.com/Purfview/# whisper-standalone-win
-# Tkinter GUI - https://docs.python.org/3/library/tkinter.html
 
 import tkinter as tk
 from tkinter import filedialog
 
 class TranscribeApp:
     def __init__(self, root):
-        self.root = tk.Tk()
+        self.root = root
         self.root.geometry("800x500")
         self.root.title("Transcribe Utility")
 
-        # Open File Button
+        # Create menu bar
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        # File dropdown menu
+        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="Open", command=self.select_file)
+        self.file_menu.add_command(label="Exit", command=self.root.quit)
+
+        # Open file button
         self.open_button = tk.Button(self.root, text="Open File", command=self.select_file)
         self.open_button.pack(pady=20)
 
