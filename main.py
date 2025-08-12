@@ -2,13 +2,21 @@
 # Transcribe Utility
 
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
+from transcriber import Transcriber
 
-class TranscribeApp:
-    def __init__(self, root):
-        self.root = root
+class TranscribeApp: # Covers GUI basic features
+    def __init__(self, root_window):
+        """Initialize the TranscribeApp with a Tkinter root window. 
+        
+            Args: root_gui (tk.Tk): The main Tkinter window instance.
+        """
+        self.root = root_window
         self.root.geometry("800x500")
         self.root.title("Transcribe Utility")
+
+        # Initialize Transcriber
+        self.transcriber = Transcriber(model_size="small", device="cpu", compute_type="int8")
 
         # Create menu bar
         self.menu_bar = tk.Menu(self.root)
@@ -20,9 +28,14 @@ class TranscribeApp:
         self.file_menu.add_command(label="Open", command=self.select_file)
         self.file_menu.add_command(label="Exit", command=self.root.quit)
 
-        # Open file button
+        # GUI elements
         self.open_button = tk.Button(self.root, text="Open File", command=self.select_file)
-        self.open_button.pack(pady=20)
+        self.open_button.pack(pady=10)
+
+        self.transcribe_button = tk.Button(self.root, text="Transcribe", command=self.transcribe_file, state=tk.DISABLED)
+        self.transcribe_button.pack(pady=10)
+        
+        self.filepath = None
 
     def select_file(self):
         filepath = filedialog.askopenfilename(
@@ -31,7 +44,25 @@ class TranscribeApp:
             filetypes=[("Video files", "*.mp4 *.webm *.mov *.mkv")]
         )
         if filepath:
+            self.filepath = filepath
             print(f"Selected file: {filepath}")
+            self.transcribe_button.config(state=tk.NORMAL)
+        else:
+            self.filepath = None
+            self.transcribe_button.config(state=tk.DISABLED)
+
+    def transcribe_file(self):
+         if not self.filepath:
+            messagebox.showerror("Error", "No file selected.")
+            return
+         try:
+            self.transcribe_button.config(state=tk.DISABLED)
+            transcription = self.transcriber.transcribe(self.filepath)
+            messagebox.showinfo("Success, processing transcription.")
+         except Exception as e:
+             messagebox.showerror("Error", f"Transcription failed: {str (e)}.")
+         finally:
+             self.transcribe_button.config(state=tk.NORMAL)
 
 if __name__ == "__main__":
     root = tk.Tk()
