@@ -1,0 +1,6 @@
+- Add canvas logic to show blank/selected file(s) with lines
+- Add loading bar at bottom of GUI while transcribing
+    - Add #/#
+- Show live transcription on canvas like shown in terminal
+- Add .srt conversion functionality
+- Add .srt file to selected filepath
