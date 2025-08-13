@@ -1,6 +1,7 @@
 Transcribe Utility Design Document (Work in Progress)
 
 Overview
+
 The Transcribe Utility is a desktop application that transcribes audio files
 into text using the faster-whisper Python library. The application features a
 user-friendly GUI to allow users to select audio files, initiate transcription,
@@ -9,6 +10,7 @@ feature .srt subtitle output conversion from text files. The design prioritizes
 modularity for future expansion.
 
 Objectives
+
 1. Provides an intuitive interface for selecting and transcribing audio files
 2. Generate accurate transcriptions with time stamps using faster-whisper's 
     tiny.en model for minimal setup for English.
