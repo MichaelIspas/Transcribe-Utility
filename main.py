@@ -2,10 +2,10 @@
 # Transcribe Utility
 
 import tkinter as tk
-import srt
-from tkinter import filedialog, messagebox
-from transcriber import Transcriber
 from multiprocessing import Process
+from tkinter import filedialog, messagebox
+#from srt_handler import srt_process
+from transcriber import Transcriber
 
 class TranscribeApp: # Covers GUI basic features
     def __init__(self, root_window):
@@ -72,7 +72,6 @@ class TranscribeApp: # Covers GUI basic features
                 target=TranscribeApp.run_transcription, 
                 args=(self.filepath, "small", "cpu", "int8"))
             self.transcription_process.start()
-            print(srt.compose(subtitles))
         except Exception as e:
             messagebox.showerror(message=f"Error, Transcription failed: {str (e)}.")
 
