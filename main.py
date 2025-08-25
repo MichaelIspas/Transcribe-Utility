@@ -2,10 +2,12 @@
 # Transcribe Utility
 
 import tkinter as tk
-#import srt
-from tkinter import filedialog, messagebox
-from transcriber import Transcriber
+import sys
+import os
 from multiprocessing import Process
+from tkinter import filedialog, messagebox
+#from srt_handler import srt_process
+from transcriber import Transcriber
 
 class TranscribeApp: # Covers GUI basic features
     def __init__(self, root_window):
@@ -36,9 +38,13 @@ class TranscribeApp: # Covers GUI basic features
 
     @staticmethod
     def run_transcription(filepath, model_size, device, compute_type):
-        transcriber = Transcriber(model_size=model_size, device=device, compute_type=
-                                  compute_type)
-        transcriber.transcribe(filepath)
+        transcriber = Transcriber(model_size=model_size, device=device, compute_type=compute_type)
+
+        output_file = os.path.splitext(filepath)[0] + '.txt'
+        with open(output_file, 'w', encoding='utf-8') as f:
+            sys.stdout = f
+            transcriber.transcribe(filepath)
+            sys.stdout = sys.__stdout__
 
     def select_file(self):
         filepath = filedialog.askopenfilename(
@@ -72,7 +78,6 @@ class TranscribeApp: # Covers GUI basic features
                 target=TranscribeApp.run_transcription, 
                 args=(self.filepath, "small", "cpu", "int8"))
             self.transcription_process.start()
-            #messagebox.showinfo(message="Transcription Completed.")
         except Exception as e:
             messagebox.showerror(message=f"Error, Transcription failed: {str (e)}.")
 
