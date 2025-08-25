@@ -2,6 +2,8 @@
 # Transcribe Utility
 
 import tkinter as tk
+import sys
+import os
 from multiprocessing import Process
 from tkinter import filedialog, messagebox
 #from srt_handler import srt_process
@@ -38,7 +40,11 @@ class TranscribeApp: # Covers GUI basic features
     def run_transcription(filepath, model_size, device, compute_type):
         transcriber = Transcriber(model_size=model_size, device=device, compute_type=
                                   compute_type)
-        transcriber.transcribe(filepath)
+        output_file = os.path.splitext(filepath)[0] + '.txt'
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            sys.stdout = f
+            transcriber.transcribe(filepath)
 
     def select_file(self):
         filepath = filedialog.askopenfilename(
