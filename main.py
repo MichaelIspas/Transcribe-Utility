@@ -4,7 +4,6 @@
 import tkinter as tk
 import sys
 import os
-from contextlib import redirect_stdout
 from multiprocessing import Process
 from tkinter import filedialog, messagebox
 #from srt_handler import srt_process
