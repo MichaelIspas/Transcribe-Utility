@@ -6,7 +6,7 @@ import sys
 import os
 from multiprocessing import Process
 from tkinter import filedialog, messagebox
-#from srt_handler import srt_process
+# from srt_handler import Srthandler
 from transcriber import Transcriber
 
 class TranscribeApp: # Covers GUI basic features
