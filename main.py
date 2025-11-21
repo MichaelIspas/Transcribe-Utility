@@ -6,8 +6,8 @@ import sys
 import os
 from multiprocessing import Process
 from tkinter import filedialog, messagebox
-# from srt_handler import Srthandler
 from transcriber import Transcriber
+from srt_handler import SRTHandler
 
 class TranscribeApp: # Covers GUI basic features
     def __init__(self, root_window):
@@ -40,11 +40,22 @@ class TranscribeApp: # Covers GUI basic features
     def run_transcription(filepath, model_size, device, compute_type):
         transcriber = Transcriber(model_size=model_size, device=device, compute_type=compute_type)
 
-        output_file = os.path.splitext(filepath)[0] + '.txt'
-        with open(output_file, 'w', encoding='utf-8') as f:
+        txt_output = os.path.splitext(filepath)[0] + '.txt'
+        srt_output = os.path.splitext(filepath)[0] + '.srt'
+        
+        with open(txt_output, 'w', encoding='utf-8') as f:
             sys.stdout = f
             transcriber.transcribe(filepath)
             sys.stdout = sys.__stdout__
+
+        with open(txt_output, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        lines = [line for line in lines if line.strip().startswith('[')]
+        srt_content = SRTHandler.create_srt_content(lines)
+
+        with open(srt_output, 'w', encoding='utf-8') as f:
+            f.write(srt_content)
 
     def select_file(self):
         filepath = filedialog.askopenfilename(
