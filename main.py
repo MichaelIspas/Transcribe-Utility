@@ -5,7 +5,7 @@ import tkinter as tk
 import sys
 import os
 from multiprocessing import Process
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from transcriber import Transcriber
 from srt_handler import SRTHandler
 
@@ -74,7 +74,14 @@ class TranscribeApp: # Covers GUI basic features
     def open_new_window(self):
         self.new_window = tk.Toplevel(self.root)
         self.new_window.title("Transcribe")
-        self.new_window.geometry("250x150")
+        self.new_window.geometry("350x250")
+
+        # Display progress bar
+        self.progress_bar = ttk.Progressbar(self.new_window, orient="horizontal", length=200)
+        self.progress_bar.place(x=30, y=60, width=200)
+        self.progress_bar.pack(pady=30)
+
+        # Display transcribe button
         self.transcribe_button = tk.Button(self.new_window, text="Transcribe",
                                         command=self.transcribe_file,
                                         state=tk.NORMAL if self.filepath else
@@ -83,18 +90,38 @@ class TranscribeApp: # Covers GUI basic features
 
     def transcribe_file(self):
         try:
-            self.transcribe_button.config(text="Cancel", state=tk.NORMAL,
-                                          command=self.cancel)
+            # Start progress bar visual
+            self.progress_bar.start(10)
+
+            # Change button to Cancel
+            self.transcribe_button.config(text="Cancel", command=self.cancel)
+            
+            # Run transcription in background
             self.transcription_process = Process(
                 target=TranscribeApp.run_transcription, 
                 args=(self.filepath, "small", "cpu", "int8"))
             self.transcription_process.start()
+            print("Transcription started.")
+
+            # Check every 100 milliseconds if done
+            self.root.after(100, self.check_if_done)
+        
         except Exception as e:
             messagebox.showerror(message=f"Error, Transcription failed: {str (e)}.")
 
+    def check_if_done(self):
+        if self.transcription_process.is_alive():
+            self.root.after(100, self.check_if_done)
+        else:
+            self.progress_bar.stop()
+            self.transcribe_button.config(text="Close", command=self.new_window.destroy)
+            print("Transcription completed.")
+
     def cancel(self):
-        self.transcription_process.terminate()
+        if self.transcription_process and self.transcription_process.is_alive():
+            self.transcription_process.terminate()
         self.new_window.destroy()
+        print("Transcription cancelled. ")
 
 if __name__ == "__main__":
     root = tk.Tk()
