@@ -11,7 +11,7 @@ class Transcriber:
             print(f"Error loading model: {e}")
             self.model = None
 
-    def transcribe(self, filepath):
+    def transcribe(self, filepath, progress_callback=None):
         if not self.model:
             return None, "Model not loaded!"
         try:
@@ -21,6 +21,20 @@ class Transcriber:
 
             for segment in segments:
                 print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+
+                total_duration = info.duration if info.duration > 0 else 1  # avoid div-by-zero
+                processed = 0.0
+
+                if progress_callback and total_duration:
+                    new_processed = segment.end
+                    if new_processed > processed:
+                        processed = new_processed
+                        progress = min(100.0, (processed / total_duration) * 100)
+                        progress_callback(progress)
+
+            # Signal 100% when finished
+            if progress_callback:
+                progress_callback(100.0)
         
         except Exception as e:
             return None, f"Error during transcription: {e}"
