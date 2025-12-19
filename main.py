@@ -1,6 +1,7 @@
 # Michael Ispas
 # Transcribe Utility
 
+import multiprocessing
 import sys
 import time
 import tkinter as tk
@@ -159,6 +160,7 @@ class TranscribeApp: # Covers GUI basic features
         self.progress_bar["value"] = 0
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     root = tk.Tk()
     app = TranscribeApp(root)
     root.mainloop()
