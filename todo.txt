@@ -1,6 +1,3 @@
-- Add canvas logic to show blank/selected file(s) with lines
-- Add loading bar at bottom of GUI while transcribing
-    - Add #/#
-- Show live transcription on canvas like shown in terminal
-- Add .srt conversion functionality
-- Add .srt file to selected filepath
+- Add file dialog to show blank/selected file(s) and transcribe sequentially
+- Add Tkinter menu selection for faster_whisper accuracy vs. speed on transcribe window
+
