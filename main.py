@@ -31,6 +31,7 @@ class TranscribeApp: # Covers GUI basic features
         self.filepath = None
         self.transcription_thread = None
         self.cancelled = False
+        self.stop_event = threading.Event()
 
         # File dropdown menu
         self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
@@ -46,7 +47,7 @@ class TranscribeApp: # Covers GUI basic features
         self.transcribe_button = None
 
     @staticmethod
-    def run_transcription(filepath, model_size, device, compute_type, progress_callback=None):
+    def run_transcription(filepath, model_size, device, compute_type, progress_callback=None, stop_event=None):
         transcriber = Transcriber(model_size=model_size, device=device, compute_type=compute_type)
 
         txt_output = os.path.splitext(filepath)[0] + '.txt'
@@ -57,7 +58,7 @@ class TranscribeApp: # Covers GUI basic features
         try:
             with open(txt_output, 'w', encoding='utf-8') as f:
                 sys.stdout = f
-                transcriber.transcribe(filepath, progress_callback=progress_callback)
+                transcriber.transcribe(filepath, progress_callback=progress_callback, stop_event=stop_event)
         finally:
             sys.stdout = original_stdout
 
@@ -71,7 +72,7 @@ class TranscribeApp: # Covers GUI basic features
             f.write(srt_content)
 
         # Signal 100%
-        if progress_callback:
+        if progress_callback and (stop_event is None or not stop_event.is_set()):
             progress_callback(100.0)
 
     def select_file(self):
@@ -86,7 +87,11 @@ class TranscribeApp: # Covers GUI basic features
             self.open_new_window()
         else:
             self.filepath = None
-            self.transcribe_button.config(state=tk.DISABLED)
+            if self.new_window and self.new_window.winfo_exists() and self.transcribe_button:
+                try:
+                    self.transcribe_button.config(state=tk.DISABLED)
+                except tk.TclError:
+                    pass
 
     def open_new_window(self):
         self.new_window = tk.Toplevel(self.root)
@@ -109,6 +114,7 @@ class TranscribeApp: # Covers GUI basic features
     def transcribe_file(self):
         self.cancelled = False
         self.transcribe_button.config(text="Cancel", command=self.cancel)
+        self.stop_event.clear()
 
         def update_progress(value):
             self.progress_bar["value"] = value
@@ -117,7 +123,7 @@ class TranscribeApp: # Covers GUI basic features
         # Run transcription in background
         self.transcription_thread = threading.Thread(
             target=self.run_transcription,
-            args=(self.filepath, "small", "cpu", "int8", update_progress),
+            args=(self.filepath, "small", "cpu", "int8", update_progress, self.stop_event),
             daemon=True
         )
         self.transcription_thread.start()
@@ -137,15 +143,18 @@ class TranscribeApp: # Covers GUI basic features
 
     def cancel(self):
         self.cancelled = True
+        self.stop_event.set()
         self.transcribe_button.config(state="disabled", text="Cancelling...")
         print("Transcription cancelled.")
 
-        def delayed_close():
-            time.sleep(1)  # give thread a moment to die
+        def close_when_done():
             if not self.transcription_thread.is_alive():
                 self.new_window.destroy()
+            else:
+                self.root.after(200, close_when_done)
+        close_when_done()
 
-        threading.Thread(target=delayed_close, daemon=True).start()
+        threading.Thread(target=close_when_done, daemon=True).start()
 
     def create_progress_bar(self):
         # Progress bar parameters

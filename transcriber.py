@@ -11,7 +11,7 @@ class Transcriber:
             print(f"Error loading model: {e}")
             self.model = None
 
-    def transcribe(self, filepath, progress_callback=None):
+    def transcribe(self, filepath, progress_callback=None, stop_event=None):
         if not self.model:
             return None, "Model not loaded!"
         try:
@@ -19,22 +19,26 @@ class Transcriber:
 
             print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
 
-            for segment in segments:
-                print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+            total_duration = info.duration if info.duration > 0 else 1
+            processed = 0.0  # Track progress across segments
 
-                total_duration = info.duration if info.duration > 0 else 1  # avoid div-by-zero
-                processed = 0.0
+            for segment in segments:
+                if stop_event and stop_event.is_set():
+                    print("\n[Transcription cancelled by user]")
+                    break
+                
+                print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
 
                 if progress_callback and total_duration:
                     new_processed = segment.end
                     if new_processed > processed:
                         processed = new_processed
-                        progress = min(100.0, (processed / total_duration) * 100)
+                        progress = (processed / total_duration) * 100
                         progress_callback(progress)
 
             # Signal 100% when finished
-            if progress_callback:
+            if progress_callback and not (stop_event and stop_event.is_set()):
                 progress_callback(100.0)
-        
+
         except Exception as e:
             return None, f"Error during transcription: {e}"
